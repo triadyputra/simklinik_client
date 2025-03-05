@@ -12,7 +12,7 @@ const layoutSwitcher = useLayoutSwitcher()
     :is="(layoutSwitcher.dynamicLayoutComponent as any)"
     v-bind="layoutSwitcher.dynamicLayoutProps"
     close-on-change
-    default-sidebar="operasional"
+    default-sidebar="pelayanan"
   >
     <!-- Content Wrapper -->
     <RouterView v-slot="{ Component }">

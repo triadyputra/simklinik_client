@@ -81,7 +81,7 @@ const handleLogin = async () => {
 }
 
 useHead({
-  title: 'Sistem Login - TAG',
+  title: 'Sistem Informsi Klinik - Migrate',
 })
 </script>
 
@@ -146,7 +146,7 @@ useHead({
             >
               <VMessage color="primary">
                 <div>
-                  <strong class="pr-1">PT. TUNAS ARTHA GARDATAMA (TAG)
+                  <strong class="pr-1">Klinik Utama Ananda Siaga
                   </strong>
                   <!-- <span>john.doe@cssninja.io</span> -->
                 </div>

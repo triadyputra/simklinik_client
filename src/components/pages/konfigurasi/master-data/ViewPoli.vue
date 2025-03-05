@@ -15,11 +15,13 @@ const page = ref(1)
 const perPage = ref(10)
 
 const redirect = route.query.redirect as string
-const canView = userSession.checkPermission('MasterCabang', 'GetListCabang')
-const canAdd = userSession.checkPermission('MasterCabang', 'PostCabang')
-const canEdit = userSession.checkPermission('MasterCabang', 'PutCabang')
-const canDelete = userSession.checkPermission('MasterCabang', 'DeleteCabang')
-// console.log(canEdit)
+const canView = userSession.checkPermission('MasterPoli', 'GetListPoli')
+const canAdd = userSession.checkPermission('MasterPoli', 'PostMasterPoli')
+const canEdit = userSession.checkPermission('MasterPoli', 'PutMasterPoli')
+const canDelete = userSession.checkPermission('MasterPoli', 'DeleteMasterPoli')
+
+const lokasi = ref('')
+const cabangOptions = ref([])
 
 if (!canView) {
   router.push(redirect || '/error/page-1')
@@ -28,9 +30,10 @@ if (!canView) {
 async function fetchData() {
   try {
     isLoading.value = true
-    const resData = await $fetch(`MasterCabang/GetListCabang`, {
+    const resData = await $fetch(`MasterPoli/GetListPoli`, {
       params: {
         filter: filter.value,
+        cabang: lokasi.value,
         page: page.value,
         pageSize: perPage.value,
       },
@@ -65,19 +68,22 @@ async function fetchData() {
 }
 
 // Fetch otomatis saat `page` atau `filter` berubah (dengan debounce untuk pencarian)
-watch([filter, page], () => {
+watch([filter, lokasi, page], () => {
   setTimeout(fetchData, 500) // Debounce 500ms untuk pencarian
 })
 
 // Fetch pertama kali saat komponen dipasang
-fetchData()
+
+onMounted(() => {
+  fetchData()
+})
 
 const goToEdit = (noRm: string) => {
   if (!noRm) {
     console.error('Pengguna tidak ditemukan')
     return
   }
-  router.push(`/konfigurasi/master-data/form-cabang-edit/${noRm}`)
+  router.push(`/konfigurasi/master-data/form-poli-edit/${noRm}`)
 }
 
 const deleteData = async (id: string) => {
@@ -94,7 +100,7 @@ const deleteData = async (id: string) => {
 
   if (result.isConfirmed) {
     try {
-      const response = await $fetch(`MasterCabang/${id}`, {
+      const response = await $fetch(`MasterPoli/${id}`, {
         method: 'DELETE',
       })
       // console.log(response)
@@ -133,12 +139,12 @@ const deleteData = async (id: string) => {
         }
         else {
           console.error('Fetch error:', error.message)
-          notyf.error(`Fetch error: ${error?.message || 'Unknown error'}`)
+          notyf.error('Fetch error:', error.message)
         }
       }
       else {
         console.error('Error lainnya:', error)
-        notyf.error(`Error lainnya: ${JSON.stringify(error)}`)
+        notyf.error('Error lainnya:', error)
       }
     }
     finally {
@@ -156,7 +162,7 @@ const deleteData = async (id: string) => {
           <input
             v-model="filter"
             class="input custom-text-filter"
-            placeholder="Nama Cabang..."
+            placeholder="Cari Poli..."
           >
         </VControl>
       </VField>
@@ -167,7 +173,7 @@ const deleteData = async (id: string) => {
           color="primary"
           icon="fas fa-plus"
           elevated
-          to="/konfigurasi/master-mobil/form-cabang-add"
+          to="/konfigurasi/master-data/form-poli-add"
         >
           Tambah
         </VButton>
@@ -177,24 +183,16 @@ const deleteData = async (id: string) => {
       <div class="table-container">
         <table class="table datatable-table is-fullwidth">
           <thead>
-            <th>Nama Cabang</th>
-            <th>Kota</th>
-            <th>Alamat</th>
-            <th>Tlp</th>
-            <th>Fax</th>
-            <th>Group</th>
+            <th>Nama Poli</th>
+            <th>Kategori</th>
+            <th>Spesialis</th>
+            <th>Status</th>
             <th class="sticky-column">
               Actions
             </th>
           </thead>
           <tbody v-if="isLoading">
             <tr v-for="n in 10" :key="n">
-              <td>
-                <VPlaceload />
-              </td>
-              <td>
-                <VPlaceload />
-              </td>
               <td>
                 <VPlaceload />
               </td>
@@ -220,18 +218,16 @@ const deleteData = async (id: string) => {
               <td>
                 <div class="flex-media">
                   <div class="meta">
-                    <h3>{{ user.NMCABANG }}</h3>
-                    <h6 class="light-text">
-                      Kode : {{ user.KDCABANG }}
-                    </h6>
+                    <h3>{{ user.NamaPoli }}</h3>
+                    <!-- <h6 class="light-text">
+                      {{ user.warna }} - {{ user.tahun }}
+                    </h6> -->
                   </div>
                 </div>
               </td>
-              <td>{{ user.KOTA }}</td>
-              <td>{{ user.ALAMAT }}</td>
-              <td>{{ user.TELEPON }}</td>
-              <td>{{ user.FAX }}</td>
-              <td>{{ user.GRUP }}</td>
+              <td>{{ user.Kategori }}</td>
+              <td>{{ user.Spesialis }}</td>
+              <td>{{ user.Status }}</td>
               <td class="sticky-column text-center">
                 <VFlex
                   class="small-gap"
@@ -241,14 +237,14 @@ const deleteData = async (id: string) => {
                     v-tooltip.info.rounded="'Edit data'"
                     icon="lucide:edit"
                     color="info"
-                    @click="goToEdit(user.Id)"
+                    @click="goToEdit(user.IdPoli)"
                   />
                   <VIconWrap
                     v-if="canDelete"
                     v-tooltip.info.rounded="'Hapus data'"
                     icon="lucide:trash-2"
                     color="danger"
-                    @click="deleteData(user.Id)"
+                    @click="deleteData(user.IdPoli)"
                   />
                 </VFlex>
               </td>
@@ -272,6 +268,10 @@ const deleteData = async (id: string) => {
 </template>
 
 <style lang="scss" scoped>
+.capitalize {
+  text-transform: capitalize !important;
+}
+
 .sticky-column {
   position: sticky;
   right: 0;
@@ -334,6 +334,9 @@ const deleteData = async (id: string) => {
     .v-button {
       margin-bottom: 0;
     }
+  }
+  .column {
+    padding: 0 0.75rem 0 0;
   }
 }
 

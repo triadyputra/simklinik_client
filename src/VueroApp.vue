@@ -18,7 +18,7 @@ const rtlCodes = [
 ]
 
 useHead(() => ({
-  title: 'Sistem Informasi - TAG',
+  title: 'Sistem Informasi Klinik - Migrate',
   link: [
     {
       rel: 'icon',

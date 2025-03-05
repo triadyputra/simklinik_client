@@ -7,7 +7,7 @@ onMounted(() => {
 })
 
 useHead(() => ({
-  title: 'Beranda  - TAG',
+  title: 'Beranda  - Migrate',
 }))
 
 </script>

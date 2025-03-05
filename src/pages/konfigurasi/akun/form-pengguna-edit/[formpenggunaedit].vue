@@ -12,7 +12,7 @@ onMounted(() => {
 })
 
 useHead(() => ({
-  title: 'Edit Pengguna - Konfigurasi - TAG',
+  title: 'Edit Pengguna - Konfigurasi - Migrate',
 }))
 
 const { y } = useWindowScroll()
@@ -34,13 +34,13 @@ const PhoneNumber = ref('')
 const Active = ref('')
 const Photo = ref('')
 const Groups = ref<string[]>([])
-const Cabang = ref('')
+const Peran = ref('')
 const selectStatusIconOptions = [
   { label: 'Active', value: 'Active' },
   { label: 'Non Active', value: 'Non Active' },
 ]
-const tagsCabang = ref([])
-const tagsOptions = ref([])
+const optPeran = ref([])
+const optRole = ref([])
 
 const isStuck = computed(() => {
   return y.value > 30
@@ -48,12 +48,12 @@ const isStuck = computed(() => {
 
 async function fetchCombo() {
   try {
-    const resData = await $fetch(`Combo/ComboFormUser`)
+    const resData = await $fetch(`Combo/ComboFormAkun`)
     // console.log(resData)
     // Pastikan resData tidak null sebelum assign
     if (resData) {
-      tagsCabang.value = resData.cabang
-      tagsOptions.value = resData.role
+      optPeran.value = resData.Dokter
+      optRole.value = resData.Group
     }
   }
   catch (error: unknown) {
@@ -80,7 +80,7 @@ async function fetchEditData() {
 
   isLoading.value = true
   try {
-    const response = await $fetch(`Akun/${paramId}`)
+    const response = await $fetch(`MasterAkun/${paramId}`)
     if (response) {
       let code = response.metadata.code
       let message = response.metadata.message
@@ -97,7 +97,7 @@ async function fetchEditData() {
       Active.value = resData.Active ? 'Active' : 'Non Active'
       Photo.value = resData.Photo
       Groups.value = resData.Group
-      Cabang.value = resData.IdCabang
+      Peran.value = resData.Peran
     }
   }
   catch (error: unknown) {
@@ -149,10 +149,10 @@ const onSubmit = async () => {
       Active: Active.value == 'Active' ? true : false,
       Group: Groups.value,
       Photo: Photo.value,
-      IdCabang: Cabang.value,
+      Peran: Peran.value,
     }
 
-    const response = await $fetch(`Akun/${paramId}`, {
+    const response = await $fetch(`MasterAkun/${paramId}`, {
       method: 'PUT',
       body: payload,
     })
@@ -412,15 +412,15 @@ onMounted(() => {
               </div>
               <div class="column is-12">
                 <VField v-slot="{ id }" class="is-autocomplete-select">
-                  <VLabel>Cabang</VLabel>
+                  <VLabel>Peran</VLabel>
                   <VControl icon="fas fa-map-marker-alt">
                     <Multiselect
-                      v-model="Cabang"
+                      v-model="Peran"
                       :attrs="{ id }"
-                      :options="tagsCabang"
+                      :options="optPeran"
                       label="label"
                       track-by="label"
-                      placeholder="Pilih Cabang..."
+                      placeholder="Pilih Peran..."
                       :searchable="true"
                     />
                   </VControl>
@@ -436,7 +436,7 @@ onMounted(() => {
                       mode="tags"
                       :searchable="true"
                       :create-tag="true"
-                      :options="tagsOptions"
+                      :options="optRole"
                       placeholder="Group Akses"
                     />
                   </VControl>

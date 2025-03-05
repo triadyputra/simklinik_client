@@ -15,10 +15,10 @@ const page = ref(1)
 const perPage = ref(10)
 
 const redirect = route.query.redirect as string
-const canView = userSession.checkPermission('Akun', 'GetListAkun')
-const canAdd = userSession.checkPermission('Akun', 'PostAkun')
-const canEdit = userSession.checkPermission('Akun', 'PutAkun')
-const canDelete = userSession.checkPermission('Akun', 'DeleteAkun')
+const canView = userSession.checkPermission('MasterAkun', 'GetListAkun')
+const canAdd = userSession.checkPermission('MasterAkun', 'PostMasterAkun')
+const canEdit = userSession.checkPermission('MasterAkun', 'PutMasterAkun')
+const canDelete = userSession.checkPermission('MasterAkun', 'DeleteMasterAkun')
 // console.log(canEdit)
 
 if (!canView) {
@@ -28,7 +28,7 @@ if (!canView) {
 async function fetchData() {
   try {
     isLoading.value = true
-    const resData = await $fetch(`Akun/GetListAkun`, {
+    const resData = await $fetch(`MasterAkun/GetListAkun`, {
       params: {
         filter: filter.value,
         page: page.value,
@@ -94,7 +94,7 @@ const deleteData = async (id: string) => {
 
   if (result.isConfirmed) {
     try {
-      const response = await $fetch(`Akun/${id}`, {
+      const response = await $fetch(`MasterAkun/${id}`, {
         method: 'DELETE',
       })
       // console.log(response)

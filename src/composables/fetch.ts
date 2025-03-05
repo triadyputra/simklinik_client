@@ -62,7 +62,7 @@ export function useApiFetch(event?: H3Event) {
           'X-Custom-Header': encryptTimestamp(), // Menambahkan header custom
           'apikey': 'e+88+vWJO4ytm84yTlDuQfuFrWW+4V1KF0W43hoCg+U=',
           'clientid': 'hhP9u9vPe4VTPYbTwcnf6fKQZ9Xpj1bqsAQW9fCfj9Y=',
-          'cabang': userSession.user?.cabang,
+          'klinikid': userSession.user?.klinikid,
         }
       }
     },

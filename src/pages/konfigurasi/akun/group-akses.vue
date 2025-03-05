@@ -5,7 +5,7 @@ onMounted(() => {
 })
 
 useHead({
-  title: 'Group Akses - Konfigurasi - TAG',
+  title: 'Group Akses - Konfigurasi - Migrate',
 })
 </script>
 

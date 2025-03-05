@@ -6,60 +6,30 @@ const userSession = useUserSession()
 const router = useRouter()
 const route = useRoute()
 const notyf = useNotyf()
-const isLoading = ref(false)
 const $fetch = useApiFetch()
 const data = ref<any[]>([])
 const totalItems = ref(0)
 const filter = ref('')
 const page = ref(1)
 const perPage = ref(10)
+const isLoading = ref(false)
 
 const redirect = route.query.redirect as string
-const canView = userSession.checkPermission('ChecklisCitGuard', 'GetListCheklisCit')
-const canEdit = userSession.checkPermission('ChecklisCitGuard', 'GetDetailCheklisCit')
-
-const lokasi = ref('')
-const cabangOptions = ref([])
+const canView = userSession.checkPermission('MasterPasien', 'GetListPasien')
+const canAdd = userSession.checkPermission('MasterPasien', 'PostMasterPasien')
+const canEdit = userSession.checkPermission('MasterPasien', 'PutMasterPasien')
+const canDelete = userSession.checkPermission('MasterPasien', 'DeleteMasterPasien')
+console.log(canEdit)
 
 if (!canView) {
-  router.push(redirect || '/error/page-1')
+  router.push(redirect || '/beranda')
 }
 
-async function fetchCombo() {
-  try {
-    const resData = await $fetch(`Combo/ComboFormMobil`)
-    if (resData) {
-      cabangOptions.value = resData.cabang
-    }
-  }
-  catch (error: unknown) {
-    if (error instanceof Error) {
-      console.log(error.message)
-      if (error.message.includes('Failed to fetch')) {
-        console.error('Server tidak dapat dijangkau. Cek koneksi backend.')
-        notyf.error('Server tidak dapat dijangkau. Cek koneksi backend.')
-      }
-      else {
-        console.error('Fetch error:', error.message)
-        notyf.error(`Fetch error: ${error?.message || 'Unknown error'}`)
-      }
-    }
-    else {
-      console.error('Error lainnya:', error)
-      notyf.error(`Error lainnya: ${JSON.stringify(error)}`)
-    }
-  }
-  finally {
-    isLoading.value = false
-  }
-}
 async function fetchData() {
   try {
-    isLoading.value = true
-    const resData = await $fetch(`ChecklisCitGuard/GetListCheklisCit`, {
+    const resData = await $fetch(`MasterPasien/GetListPasien`, {
       params: {
-        filter: filter.value ? format(filter.value, 'yyyy-MM-dd') : null,
-        cabang: lokasi.value,
+        filter: filter.value,
         page: page.value,
         pageSize: perPage.value,
       },
@@ -94,51 +64,89 @@ async function fetchData() {
 }
 
 // Fetch otomatis saat `page` atau `filter` berubah (dengan debounce untuk pencarian)
-watch([filter, lokasi, page], () => {
+watch([filter, page], () => {
   setTimeout(fetchData, 500) // Debounce 500ms untuk pencarian
 })
 
 // Fetch pertama kali saat komponen dipasang
-
-onMounted(() => {
-  fetchCombo()
-  fetchData()
-})
+fetchData()
 
 const goToEdit = (noRm: string) => {
   if (!noRm) {
-    console.error('Pengguna tidak ditemukan')
+    console.error('NoRm tidak ditemukan')
     return
   }
-  router.push(`/guard/cheklis-kendaraan/form-cheklis-cit/${noRm}`)
+  router.push(`/pelayanan/rajal/form-pasien-edit/${noRm}`)
 }
 
-const formatDate = (date: Date | null) => {
-  return date ? format(date, 'dd-MM-yyyy') : ''
-}
-const statusText = (status: string) => {
-  switch (status) {
-    case 'Menunggu':
-      return 'Menunggu'
-    case 'Berangkat':
-      return 'Berangkat'
-    case 'Pulang':
-      return 'Pulang'
-    default:
-      return 'Tidak Diketahui' // Jika ada status lain yang tidak dikenali
-  }
+function getAvatar(sex: string) {
+  return avatar(sex)
 }
 
-const statusColor = (status: string) => {
-  switch (status) {
-    case 'Menunggu':
-      return 'warning' // Warna kuning
-    case 'Berangkat':
-      return 'info' // Warna biru
-    case 'Pulang':
-      return 'success' // Warna hijau
-    default:
-      return 'danger' // Warna merah jika tidak dikenal
+const deleteData = async (id: string) => {
+  const result = await Swal.fire({
+    title: 'Yakin ingin menghapus?',
+    text: 'Data yang dihapus tidak bisa dikembalikan!',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#f82a5e',
+    cancelButtonColor: '#0398e2',
+    confirmButtonText: 'Ya, Hapus!',
+    cancelButtonText: 'Batal',
+  })
+
+  if (result.isConfirmed) {
+    try {
+      const response = await $fetch(`MasterPasien/${id}`, {
+        method: 'DELETE',
+      })
+      console.log(response)
+      if (response) {
+        let code = response.metadata.code
+        let message = response.metadata.message
+        if (code == '200') {
+        // notyf.dismissAll()
+        // notyf.primary(message)
+          Swal.fire({
+            title: 'Terhapus!',
+            text: message,
+            icon: 'success',
+            confirmButtonText: 'OK',
+          })
+          fetchData()
+        }
+        else {
+        // notyf.error(message)
+          Swal.fire({
+            title: 'Pesan!',
+            text: message,
+            icon: 'error',
+            confirmButtonText: 'OK',
+          })
+          return
+        }
+      }
+    }
+    catch (error: unknown) {
+      if (error instanceof Error) {
+        console.log(error.message)
+        if (error.message.includes('Failed to fetch')) {
+          console.error('Server tidak dapat dijangkau. Cek koneksi backend.')
+          notyf.error('Server tidak dapat dijangkau. Cek koneksi backend.')
+        }
+        else {
+          console.error('Fetch error:', error.message)
+          notyf.error(`Fetch error: ${error?.message || 'Unknown error'}`)
+        }
+      }
+      else {
+        console.error('Error lainnya:', error)
+        notyf.error(`Error lainnya: ${JSON.stringify(error)}`)
+      }
+    }
+    finally {
+      isLoading.value = false
+    }
   }
 }
 </script>
@@ -146,58 +154,40 @@ const statusColor = (status: string) => {
 <template>
   <div>
     <div class="datatable-toolbar">
-      <div class="column is-2">
-        <ClientOnly>
-          <VDatePicker
+      <VField>
+        <VControl icon="lucide:search">
+          <input
             v-model="filter"
-            color="green"
-            trim-weeks
+            class="input custom-text-filter"
+            placeholder="Nama / No RM..."
           >
-            <template #default="{ inputValue, inputEvents }">
-              <VField>
-                <VControl icon="lucide:calendar">
-                  <input
-                    class="input v-input"
-                    type="text"
-                    placeholder="Pilih Tanggal"
-                    :value="formatDate(inputValue)"
-                    v-on="inputEvents"
-                  >
-                </VControl>
-              </VField>
-            </template>
-          </VDatePicker>
-        </ClientOnly>
-      </div>
-      <div class="column is-2">
-        <VField v-slot="{ id }" class="is-autocomplete-select">
-          <VControl icon="fas fa-map-marker-alt">
-            <Multiselect
-              v-model="lokasi"
-              :attrs="{ id }"
-              :options="cabangOptions"
-              label="label"
-              track-by="label"
-              placeholder="Pilih Cabang..."
-              :searchable="true"
-            />
-          </VControl>
-        </VField>
-      </div>
-    </div>
+        </VControl>
+      </VField>
 
+      <VButtons>
+        <VButton
+          v-if="canAdd"
+          color="primary"
+          icon="fas fa-plus"
+          elevated
+          to="rajal/form-pasien-add"
+        >
+          Tambah
+        </VButton>
+      </VButtons>
+    </div>
     <div class="datatable-wrapper">
       <div class="table-container">
         <table class="table datatable-table is-fullwidth">
           <thead>
-            <th>No Order</th>
+            <th>Nama Pasien</th>
+            <th>Tempat Tgl Lahir</th>
+            <th>Jenis Kelamin</th>
+            <th>Alamat</th>
+            <th>Nama Ibu</th>
+            <th>No Hp</th>
+            <th>No Identitas</th>
             <th>Status</th>
-            <th>Custody</th>
-            <th>Pengawal</th>
-            <th>Mobil</th>
-            <th>KM</th>
-            <th>BAR</th>
-            <th>Jam</th>
             <th class="sticky-column">
               Actions
             </th>
@@ -240,111 +230,80 @@ const statusColor = (status: string) => {
             >
               <td>
                 <div class="flex-media">
+                  <VAvatar
+                    :picture="user.Photo ?? getAvatar(user.Kelamin) "
+                    alt="Avatar"
+                  />
                   <div class="meta">
-                    <h3>{{ user.NOWO }}</h3>
+                    <h3>{{ user.NamaLengkap }}</h3>
                     <h6 class="light-text">
-                      {{ format(user.TANGGAL, 'dd-MM-yyyy') }} - {{ format(user.JAM, 'HH:mm') }}
+                      No RM : {{ user.NoRm }}
                     </h6>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="flex-media">
+                  <div class="meta">
+                    <h3>{{ user.TmpLahir }}</h3>
                     <h6 class="light-text">
-                      No Trip : {{ user.NOTRIP }}
+                      {{ format(user.TglLahir, 'dd-MM-yyyy') }}
+                    </h6>
+                  </div>
+                </div>
+              </td>
+              <td>{{ user.Kelamin }}</td>
+              <td>{{ user.AlamatLengkap }}</td>
+              <td>{{ user.NamaIbuKandung }}</td>
+              <td>{{ user.Tlp }}</td>
+              <td>
+                <div class="flex-media">
+                  <div class="meta">
+                    <h3>{{ user.JenisIdentitas }}</h3>
+                    <h6 class="light-text">
+                      {{ user.NomorIdentitas }}
                     </h6>
                   </div>
                 </div>
               </td>
               <td>
                 <div class="tags">
-                  <div class="tags">
-                    <VTag
-                      v-if="user.STATUS !== null && user.STATUS !== undefined"
-                      rounded
-                      :color="statusColor(user.STATUS)"
-                      elevated
-                    >
-                      {{ statusText(user.STATUS) }}
-                    </VTag>
-                  </div>
+                  <VTag
+                    v-if="user.Status"
+                    rounded
+                    :color="
+                      user.Status === 'Non Active' ? 'danger' :
+                      user.Status === 'Active' ? 'primary' :
+                      undefined
+                    "
+                    elevated
+                  >
+                    {{ user.Status }}
+                  </VTag>
                 </div>
               </td>
-              <td>
-                <div class="flex-media">
-                  <div class="meta">
-                    <h6 class="light-text">
-                      1. {{ user.NMCUSTODY1 }}
-                    </h6>
-                    <h6 class="light-text">
-                      2. {{ user.NMCUSTODY2 }}
-                    </h6>
-                  </div>
-                </div>
-              </td>
-              <td>
-                <div class="flex-media">
-                  <div class="meta">
-                    <h6 class="light-text">
-                      1. {{ user.NMPENGAWAL1 }}
-                    </h6>
-                    <h6 class="light-text">
-                      2. {{ user.NMPENGAWAL2 }}
-                    </h6>
-                  </div>
-                </div>
-              </td>
-              <td>
-                <div class="flex-media">
-                  <div class="meta">
-                    <h3>
-                      {{ user.MOBIL }}
-                    </h3>
-                  </div>
-                </div>
-              </td>
-              <td>
-                <div class="flex-media">
-                  <div class="meta">
-                    <h6 class="light-text">
-                      Km Awal : {{ new Intl.NumberFormat('id-ID').format(user.KMAWAL) }}
-                    </h6>
-                    <h6 class="light-text">
-                      Km Akhir : {{ new Intl.NumberFormat('id-ID').format(user.KMAKHIR) }}
-                    </h6>
-                  </div>
-                </div>
-              </td>
-              <td>
-                <div class="flex-media">
-                  <div class="meta">
-                    <h6 class="light-text">
-                      Bar Awal : {{ new Intl.NumberFormat('id-ID').format(user.BARAWAL) }}
-                    </h6>
-                    <h6 class="light-text">
-                      Bar Akhir : {{ new Intl.NumberFormat('id-ID').format(user.BARAKHIR) }}
-                    </h6>
-                  </div>
-                </div>
-              </td>
-              <td>
-                <div class="flex-media">
-                  <div class="meta">
-                    <h6 class="light-text">
-                      Jam Out : {{ user.JAMKONTROLB ? 'Awal : ' + format(user.JAMKONTROLB, 'HH:mm') : '' }}
-                    </h6>
-                    <h6 class="light-text">
-                      Jam In : {{ user.JAMKONTROLK ? 'Awal : ' + format(user.JAMKONTROLK, 'HH:mm') : '' }}
-                    </h6>
-                  </div>
-                </div>
-              </td>
-
               <td class="sticky-column text-center">
                 <VFlex
                   class="small-gap"
                 >
                   <VIconWrap
-                    v-if="canEdit && user?.STATUS !== 'Menunggu'"
-                    v-tooltip.info.rounded="'Lihat Detail'"
-                    icon="lucide:eye"
+                    v-if="canEdit"
+                    v-tooltip.info.rounded="'Edit data'"
+                    icon="lucide:edit"
                     color="info"
-                    @click="goToEdit(user.NOWO)"
+                    @click="goToEdit(user.NoRm)"
+                  />
+                  <VIconWrap
+                    v-if="canDelete"
+                    v-tooltip.info.rounded="'Hapus data'"
+                    icon="lucide:trash-2"
+                    color="danger"
+                    @click="deleteData(user.NoRm)"
+                  />
+                  <VIconWrap
+                    v-tooltip.info.rounded="'Registras pasien'"
+                    icon="lucide:user-check"
+                    color="success"
                   />
                 </VFlex>
               </td>
@@ -368,10 +327,6 @@ const statusColor = (status: string) => {
 </template>
 
 <style lang="scss" scoped>
-.capitalize {
-  text-transform: capitalize !important;
-}
-
 .sticky-column {
   position: sticky;
   right: 0;
@@ -434,9 +389,6 @@ const statusColor = (status: string) => {
     .v-button {
       margin-bottom: 0;
     }
-  }
-  .column {
-    padding: 0 0.75rem 0 0;
   }
 }
 

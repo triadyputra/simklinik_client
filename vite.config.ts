@@ -221,7 +221,7 @@ export default defineConfig(({ isSsrBuild }) => ({
       base: '/',
       includeAssets: ['favicon.svg', 'favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Sistem Informasi - TAG',
+        name: 'Sistem Informasi Klinik - Migrate',
         short_name: 'Vuero',
         start_url: '/?utm_source=pwa',
         display: 'standalone',

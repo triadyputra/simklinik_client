@@ -7,7 +7,7 @@ onMounted(() => {
 })
 
 useHead(() => ({
-  title: 'Tambah Pengguna - Konfigurasi - TAG',
+  title: 'Tambah Pengguna - Konfigurasi - Migrate',
 }))
 
 const { y } = useWindowScroll()
@@ -25,21 +25,21 @@ const PhoneNumber = ref('')
 const Active = ref('')
 const Photo = ref('')
 const Groups = ref<string[]>([])
-const Cabang = ref('')
+const Peran = ref('')
 const selectStatusIconOptions = [
   { label: 'Active', value: 'Active' },
   { label: 'Non Active', value: 'Non Active' },
 ]
-const tagsCabang = ref([])
-const tagsOptions = ref([])
+const optPeran = ref([])
+const optRole = ref([])
 async function fetchCombo() {
   try {
-    const resData = await $fetch(`Combo/ComboFormUser`)
+    const resData = await $fetch(`Combo/ComboFormAkun`)
     // console.log(resData)
     // Pastikan resData tidak null sebelum assign
     if (resData) {
-      tagsCabang.value = resData.cabang
-      tagsOptions.value = resData.role
+      optPeran.value = resData.Dokter
+      optRole.value = resData.Group
     }
   }
   catch (error: unknown) {
@@ -95,10 +95,10 @@ const onSubmit = async () => {
       Active: Active.value == 'Active' ? true : false,
       Group: Groups.value,
       Photo: Photo.value,
-      IdCabang: Cabang.value,
+      IdCabang: Peran.value,
     }
 
-    const response = await $fetch('Akun', {
+    const response = await $fetch('MasterAkun', {
       method: 'POST',
       body: payload,
     })
@@ -355,15 +355,15 @@ fetchCombo()
               </div>
               <div class="column is-12">
                 <VField v-slot="{ id }" class="is-autocomplete-select">
-                  <VLabel>Cabang</VLabel>
+                  <VLabel>Peran</VLabel>
                   <VControl icon="fas fa-map-marker-alt">
                     <Multiselect
-                      v-model="Cabang"
+                      v-model="Peran"
                       :attrs="{ id }"
-                      :options="tagsCabang"
+                      :options="optPeran"
                       label="label"
                       track-by="label"
-                      placeholder="Pilih Cabang..."
+                      placeholder="Pilih Peran..."
                       :searchable="true"
                     />
                   </VControl>
@@ -379,7 +379,7 @@ fetchCombo()
                       mode="tags"
                       :searchable="true"
                       :create-tag="true"
-                      :options="tagsOptions"
+                      :options="optRole"
                       placeholder="Group Akses"
                     />
                   </VControl>

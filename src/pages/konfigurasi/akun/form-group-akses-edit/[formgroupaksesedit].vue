@@ -18,7 +18,7 @@ onMounted(() => {
 })
 
 useHead(() => ({
-  title: 'Edit Group Akses - Konfigurasi - TAG',
+  title: 'Edit Group Akses - Konfigurasi - Migrate',
 }))
 
 // const router = useRouter()
@@ -51,7 +51,7 @@ const Photo = ref('')
 
 async function fetchMenu() {
   try {
-    const resData = await $fetch(`Role/accesRole`)
+    const resData = await $fetch(`MasterRole/accesRole`)
 
     if (resData) {
       dataMenu.value = resData
@@ -84,7 +84,7 @@ async function fetchEditData() {
 
   isLoading.value = true
   try {
-    const response = await $fetch(`Role/${paramId}`)
+    const response = await $fetch(`MasterRole/${paramId}`)
     if (response) {
       Name.value = response.Name
       Keterangan.value = response.Keterangan
@@ -131,7 +131,7 @@ const onSubmit = async () => {
       Photo: Photo.value,
     }
 
-    const response = await $fetch(`Role/${paramId}`, {
+    const response = await $fetch(`MasterRole/${paramId}`, {
       method: 'PUT',
       body: payload,
     })

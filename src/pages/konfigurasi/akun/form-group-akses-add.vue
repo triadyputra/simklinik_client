@@ -12,7 +12,7 @@ onMounted(() => {
 })
 
 useHead(() => ({
-  title: 'Tambah Group Akses - Konfigurasi - TAG',
+  title: 'Tambah Group Akses - Konfigurasi - Migrate',
 }))
 
 // const { y } = useWindowScroll()
@@ -42,7 +42,7 @@ const Photo = ref('')
 
 async function fetchCombo() {
   try {
-    const resData = await $fetch(`Role/accesRole`)
+    const resData = await $fetch(`MasterRole/accesRole`)
     console.log(resData)
 
     if (resData) {
@@ -88,7 +88,7 @@ const onSubmit = async () => {
       Photo: Photo.value,
     }
 
-    const response = await $fetch('Role', {
+    const response = await $fetch('MasterRole', {
       method: 'POST',
       body: payload,
     })

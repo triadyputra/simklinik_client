@@ -15,10 +15,10 @@ const page = ref(1)
 const perPage = ref(10)
 
 const redirect = route.query.redirect as string
-const canView = userSession.checkPermission('Role', 'GetListRole')
-const canAdd = userSession.checkPermission('Role', 'PostRole')
-const canEdit = userSession.checkPermission('Role', 'PutRole')
-const canDelete = userSession.checkPermission('Role', 'DeleteRole')
+const canView = userSession.checkPermission('MasterRole', 'GetListRole')
+const canAdd = userSession.checkPermission('MasterRole', 'PostMasterRole')
+const canEdit = userSession.checkPermission('MasterRole', 'PutMasterRole')
+const canDelete = userSession.checkPermission('MasterRole', 'DeleteMasterRole')
 // console.log(canEdit)
 
 if (!canView) {
@@ -28,7 +28,7 @@ if (!canView) {
 async function fetchData() {
   try {
     isLoading.value = true
-    const resData = await $fetch(`Role/GetListRole`, {
+    const resData = await $fetch(`MasterRole/GetListRole`, {
       params: {
         filter: filter.value,
         page: page.value,
@@ -99,7 +99,7 @@ const deleteData = async (id: string) => {
 
   if (result.isConfirmed) {
     try {
-      const response = await $fetch(`Role/${id}`, {
+      const response = await $fetch(`MasterRole/${id}`, {
         method: 'DELETE',
       })
       console.log(response)
